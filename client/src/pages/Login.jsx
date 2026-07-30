@@ -8,6 +8,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const { login, error } = useAuth();
   const navigate = useNavigate();
 
@@ -19,7 +20,10 @@ const Login = () => {
     }
     const success = await login(email, password);
     if (success) {
-      navigate('/');
+      setSuccessMsg('Login successfully');
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     }
   };
 
@@ -49,6 +53,12 @@ const Login = () => {
         {(error || localError) && (
           <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg" role="alert">
             <p>{error || localError}</p>
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg" role="alert">
+            <p>{successMsg}</p>
           </div>
         )}
 
