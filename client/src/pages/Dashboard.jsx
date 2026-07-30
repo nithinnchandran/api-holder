@@ -10,9 +10,18 @@ import Navbar from '../components/Navbar';
 import KeysView from '../components/views/KeysView';
 import AnalyticsView from '../components/views/AnalyticsView';
 import SettingsView from '../components/views/SettingsView';
+import ProfileView from '../components/views/ProfileView';
 
 const Dashboard = () => {
   const { user } = useAuth();
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'morning';
+    if (hour < 17) return 'afternoon';
+    return 'evening';
+  };
+
   const [keys, setKeys] = useState([]);
   const [filteredKeys, setFilteredKeys] = useState([]);
   const [search, setSearch] = useState('');
@@ -26,6 +35,47 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, favorites: 0, recentlyAdded: 0 });
   const [activeTab, setActiveTab] = useState('all'); // all, favorites, archived, analytics, settings
+  const [history, setHistory] = useState(['all']);
+
+  const [notifications, setNotifications] = useState([
+    { 
+      id: 1, 
+      title: 'Welcome to VaultX', 
+      text: 'Securely store and manage your API keys.', 
+      type: 'info',
+      time: new Date().toLocaleTimeString(),
+      action: () => setActiveTab('all')
+    }
+  ]);
+  const [hasUnread, setHasUnread] = useState(true);
+
+  const addNotification = (title, text, type = 'info') => {
+    setNotifications(prev => [{
+      id: Date.now(),
+      title,
+      text,
+      type,
+      time: new Date().toLocaleTimeString(),
+    }, ...prev]);
+    setHasUnread(true);
+  };
+
+  const handleSetTab = (newTab) => {
+    if (newTab !== activeTab) {
+      setHistory(prev => [...prev, newTab]);
+      setActiveTab(newTab);
+    }
+  };
+
+  const handleBack = () => {
+    if (history.length > 1) {
+      const newHistory = [...history];
+      newHistory.pop();
+      const prevTab = newHistory[newHistory.length - 1];
+      setHistory(newHistory);
+      setActiveTab(prevTab);
+    }
+  };
 
   const fetchKeys = async () => {
     try {
@@ -106,6 +156,7 @@ const Dashboard = () => {
         await api.delete(`/keys/${id}`);
         fetchKeys();
         setIsDetailModalOpen(false); // Close view modal if it was open
+        addNotification('Key Deleted', 'Successfully deleted the API key.', 'delete');
       } catch (err) {
         console.error(err);
       }
@@ -132,13 +183,34 @@ const Dashboard = () => {
     }
   };
 
+  const toggleArchive = async (id, currentArchived) => {
+    try {
+      await api.put(`/keys/${id}`, { archived: !currentArchived });
+      setKeys(keys.map(k => {
+        if ((k.id || k._id) === id) {
+          return { ...k, archived: !currentArchived };
+        }
+        return k;
+      }));
+      if (currentKey && (currentKey.id || currentKey._id) === id) {
+        setCurrentKey({ ...currentKey, archived: !currentArchived });
+      }
+    } catch (err) {
+      console.error(err);
+      fetchKeys();
+    }
+  };
+
   // Render the correct view based on active tab
   const renderContent = () => {
     if (activeTab === 'analytics') {
       return <AnalyticsView keys={keys} stats={stats} />;
     }
     if (activeTab === 'settings') {
-      return <SettingsView />;
+      return <SettingsView keys={keys} />;
+    }
+    if (activeTab === 'profile') {
+      return <ProfileView />;
     }
 
     // Default to KeysView (for all, favorites, archived)
@@ -152,7 +224,13 @@ const Dashboard = () => {
         >
           <div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white capitalize">
-              {activeTab === 'all' ? 'Your Vault' : `${activeTab} Keys`}
+              {activeTab === 'all' ? (
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400">
+                  Good {getGreeting()}, {user?.name?.split(' ')[0] || 'User'}
+                </span>
+              ) : (
+                `${activeTab} Keys`
+              )}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
               Manage and securely access your API keys.
@@ -196,10 +274,20 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-[#0b1120] text-slate-900 dark:text-slate-100 overflow-hidden transition-colors duration-300">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} keys={keys} />
+      <Sidebar activeTab={activeTab} setActiveTab={handleSetTab} keys={keys} />
       
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-        <Navbar user={user} search={search} setSearch={setSearch} />
+        <Navbar 
+          user={user} 
+          search={search} 
+          setSearch={setSearch} 
+          setActiveTab={handleSetTab} 
+          handleBack={handleBack}
+          canGoBack={history.length > 1}
+          notifications={notifications}
+          hasUnread={hasUnread}
+          setHasUnread={setHasUnread}
+        />
         
         <main className="flex-1 overflow-y-auto custom-scrollbar relative z-0">
           <AnimatePresence mode="wait">
@@ -222,6 +310,7 @@ const Dashboard = () => {
         onClose={() => setIsModalOpen(false)} 
         currentKey={currentKey}
         onSave={fetchKeys}
+        addNotification={addNotification}
       />
       
       <KeyDetailModal
@@ -231,6 +320,7 @@ const Dashboard = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onToggleFavorite={toggleFavorite}
+        onToggleArchive={toggleArchive}
       />
     </div>
   );

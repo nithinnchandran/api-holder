@@ -24,6 +24,26 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default: ''
+  },
+  role: {
+    type: String,
+    default: 'Software Engineer'
+  },
+  company: {
+    type: String,
+    default: ''
+  },
+  location: {
+    type: String,
+    default: ''
+  },
+  timezone: {
+    type: String,
+    default: '(GMT-08:00) Pacific Time'
+  },
+  bio: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

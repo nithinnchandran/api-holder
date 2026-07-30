@@ -89,13 +89,44 @@ exports.updateDetails = async (req, res, next) => {
   try {
     const fieldsToUpdate = {
       name: req.body.name,
-      email: req.body.email
+      email: req.body.email,
+      role: req.body.role,
+      company: req.body.company,
+      location: req.body.location,
+      timezone: req.body.timezone,
+      bio: req.body.bio
     };
 
     const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
       new: true,
       runValidators: true
     });
+
+    res.status(200).json({
+      success: true,
+      data: user
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Upload profile photo
+// @route   PUT /api/auth/profile/photo
+// @access  Private
+exports.updateProfilePhoto = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'Please upload a file' });
+    }
+
+    // Update user's avatar with the file path
+    const fileUrl = `/uploads/${req.file.filename}`;
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { avatar: fileUrl },
+      { new: true, runValidators: true }
+    );
 
     res.status(200).json({
       success: true,
@@ -130,7 +161,12 @@ const sendTokenResponse = (user, statusCode, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        avatar: user.avatar
+        avatar: user.avatar,
+        role: user.role,
+        company: user.company,
+        location: user.location,
+        timezone: user.timezone,
+        bio: user.bio
       }
     });
 };

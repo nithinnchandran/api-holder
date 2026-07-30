@@ -1,12 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiSettings, FiUser, FiShield, FiBell, FiSmartphone } from 'react-icons/fi';
+import { FiSettings, FiUser, FiShield, FiBell, FiSmartphone, FiTrash2, FiMail } from 'react-icons/fi';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 
-const SettingsView = () => {
+const SettingsView = ({ keys = [] }) => {
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [expiryReminders, setExpiryReminders] = useState(false);
+
+  const handleExport = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(keys, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "vaultx-keys-backup.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  const handleDeleteAccount = () => {
+    if (window.confirm('Are you absolutely sure you want to delete your account? This action cannot be undone and you will lose all your keys.')) {
+      alert('Your account has been securely deleted.');
+      logout();
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -36,35 +56,7 @@ const SettingsView = () => {
       </motion.div>
 
       <div className="grid gap-6">
-        {/* Profile Settings */}
-        <motion.div variants={itemVariants} className="glass-card rounded-2xl p-6">
-          <div className="flex items-center gap-4 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-primary-500 to-purple-500 text-white flex items-center justify-center font-bold text-2xl shadow-lg">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">{user?.name || 'User'}</h3>
-              <p className="text-slate-500 dark:text-slate-400">{user?.email}</p>
-            </div>
-            <button className="btn-secondary ml-auto">Edit Profile</button>
-          </div>
-          
-          <div className="space-y-4">
-            <h4 className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-2">
-              <FiUser /> Account Information
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-slate-500 mb-1">Full Name</label>
-                <input type="text" className="input-field" disabled value={user?.name || ''} />
-              </div>
-              <div>
-                <label className="block text-sm text-slate-500 mb-1">Email Address</label>
-                <input type="email" className="input-field" disabled value={user?.email || ''} />
-              </div>
-            </div>
-          </div>
-        </motion.div>
+
 
         {/* Appearance Settings */}
         <motion.div variants={itemVariants} className="glass-card rounded-2xl p-6">
@@ -109,6 +101,64 @@ const SettingsView = () => {
                 <option>1 hour</option>
                 <option>Never</option>
               </select>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Notifications Settings */}
+        <motion.div variants={itemVariants} className="glass-card rounded-2xl p-6">
+          <h4 className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-2 mb-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <FiBell /> Notifications
+          </h4>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h5 className="font-medium">Email Alerts</h5>
+                <p className="text-sm text-slate-500">Receive emails about security alerts and unusual activity.</p>
+              </div>
+              <button 
+                onClick={() => setEmailAlerts(!emailAlerts)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emailAlerts ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${emailAlerts ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <h5 className="font-medium">Key Expiry Reminders</h5>
+                <p className="text-sm text-slate-500">Get notified before an API key expires.</p>
+              </div>
+              <button 
+                onClick={() => setExpiryReminders(!expiryReminders)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${expiryReminders ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${expiryReminders ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Danger Zone */}
+        <motion.div variants={itemVariants} className="glass-card rounded-2xl p-6 border border-red-100 dark:border-red-900/30">
+          <h4 className="font-medium text-red-600 dark:text-red-500 flex items-center gap-2 mb-4 pb-4 border-b border-red-100 dark:border-red-900/30">
+            <FiTrash2 /> Danger Zone
+          </h4>
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h5 className="font-medium text-slate-800 dark:text-slate-200">Export All Data</h5>
+                <p className="text-sm text-slate-500">Download a complete backup of all your keys and metadata.</p>
+              </div>
+              <button onClick={handleExport} className="btn-secondary whitespace-nowrap">Export JSON</button>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h5 className="font-medium text-slate-800 dark:text-slate-200">Delete Account</h5>
+                <p className="text-sm text-slate-500">Permanently delete your account and all stored keys. This cannot be undone.</p>
+              </div>
+              <button onClick={handleDeleteAccount} className="px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-medium rounded-xl transition-colors whitespace-nowrap">
+                Delete Account
+              </button>
             </div>
           </div>
         </motion.div>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiX } from 'react-icons/fi';
 import api from '../services/api';
 
-const KeyModal = ({ isOpen, onClose, currentKey, onSave }) => {
+const KeyModal = ({ isOpen, onClose, currentKey, onSave, addNotification }) => {
   const [formData, setFormData] = useState({
     serviceName: '',
     apiKey: '',
@@ -11,6 +11,7 @@ const KeyModal = ({ isOpen, onClose, currentKey, onSave }) => {
     environment: 'Development',
     description: '',
     favorite: false,
+    archived: false,
   });
 
   const categories = ['Development', 'Payment', 'Cloud', 'Database', 'Social', 'Analytics', 'Hosting'];
@@ -25,6 +26,7 @@ const KeyModal = ({ isOpen, onClose, currentKey, onSave }) => {
         environment: currentKey.environment || 'Development',
         description: currentKey.description || '',
         favorite: currentKey.favorite || false,
+        archived: currentKey.archived || false,
       });
     } else {
       setFormData({
@@ -34,6 +36,7 @@ const KeyModal = ({ isOpen, onClose, currentKey, onSave }) => {
         environment: 'Development',
         description: '',
         favorite: false,
+        archived: false,
       });
     }
   }, [currentKey, isOpen]);
@@ -51,8 +54,10 @@ const KeyModal = ({ isOpen, onClose, currentKey, onSave }) => {
     try {
       if (currentKey) {
         await api.put(`/keys/${currentKey._id || currentKey.id}`, formData);
+        if (addNotification) addNotification('Key Updated', `Successfully updated the API key for ${formData.serviceName}.`, 'edit');
       } else {
         await api.post('/keys', formData);
+        if (addNotification) addNotification('Key Added', `Successfully added a new API key for ${formData.serviceName}.`, 'add');
       }
       onSave();
       onClose();
@@ -149,16 +154,29 @@ const KeyModal = ({ isOpen, onClose, currentKey, onSave }) => {
               ></textarea>
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
-              <input 
-                type="checkbox" 
-                id="favorite" 
-                name="favorite"
-                checked={formData.favorite}
-                onChange={handleChange}
-                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <label htmlFor="favorite" className="text-sm font-medium">Mark as Favorite</label>
+            <div className="flex items-center gap-6 pt-2">
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="favorite" 
+                  name="favorite"
+                  checked={formData.favorite}
+                  onChange={handleChange}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <label htmlFor="favorite" className="text-sm font-medium">Mark as Favorite</label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="archived" 
+                  name="archived"
+                  checked={formData.archived}
+                  onChange={handleChange}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                <label htmlFor="archived" className="text-sm font-medium">Archive Key</label>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-200 dark:border-dark-border">

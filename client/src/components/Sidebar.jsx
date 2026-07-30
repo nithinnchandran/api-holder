@@ -1,4 +1,4 @@
-import { FiHome, FiStar, FiArchive, FiSettings, FiLogOut, FiDownload, FiActivity, FiShield } from 'react-icons/fi';
+import { FiHome, FiStar, FiArchive, FiSettings, FiLogOut, FiDownload, FiActivity, FiLock } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import api from '../services/api';
@@ -37,7 +37,7 @@ const Sidebar = ({ activeTab, setActiveTab, keys = [] }) => {
       <div className="p-6 pb-2">
         <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-600 flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-primary-500/30">
-            <FiShield size={18} />
+            <FiLock size={18} />
           </div>
           VaultX
         </h1>

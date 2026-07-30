@@ -65,8 +65,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      setError(null);
+      const res = await api.put('/auth/profile', profileData);
+      setUser(res.data.data);
+      return true;
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to update profile');
+      return false;
+    }
+  };
+
+  const updateProfilePhoto = async (file) => {
+    try {
+      setError(null);
+      const formData = new FormData();
+      formData.append('photo', file);
+      const res = await api.put('/auth/profile/photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setUser(res.data.data);
+      return true;
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to update profile photo');
+      return false;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, login, register, logout, updateProfile, updateProfilePhoto }}>
       {!loading && children}
     </AuthContext.Provider>
   );

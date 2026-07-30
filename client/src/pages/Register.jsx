@@ -49,7 +49,10 @@ const Register = () => {
         transition={{ duration: 0.5 }}
         className="glass-card w-full max-w-md p-8 rounded-2xl relative z-10"
       >
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-primary-500/30 mb-3">
+            <FiLock size={24} />
+          </div>
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-purple-600">
             VaultX
           </h1>

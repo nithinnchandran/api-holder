@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiCopy, FiEye, FiEyeOff, FiEdit2, FiTrash2, FiStar, FiCalendar, FiTag, FiServer } from 'react-icons/fi';
+import { FiX, FiCopy, FiEye, FiEyeOff, FiEdit2, FiTrash2, FiStar, FiCalendar, FiTag, FiServer, FiArchive } from 'react-icons/fi';
 import { format } from 'date-fns';
 
-const KeyDetailModal = ({ isOpen, onClose, currentKey, onEdit, onDelete, onToggleFavorite }) => {
+const KeyDetailModal = ({ isOpen, onClose, currentKey, onEdit, onDelete, onToggleFavorite, onToggleArchive }) => {
   const [showKey, setShowKey] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -134,7 +134,7 @@ const KeyDetailModal = ({ isOpen, onClose, currentKey, onEdit, onDelete, onToggl
           </div>
 
           {/* Footer Actions */}
-          <div className="p-4 px-6 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-800/20 flex justify-between">
+          <div className="p-4 px-6 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-800/20 flex flex-wrap gap-2 justify-between">
             <button 
               onClick={() => {
                 onDelete(currentKey.id || currentKey._id);
@@ -144,15 +144,26 @@ const KeyDetailModal = ({ isOpen, onClose, currentKey, onEdit, onDelete, onToggl
             >
               <FiTrash2 /> Delete Key
             </button>
-            <button 
-              onClick={() => {
-                onEdit(currentKey);
-                onClose();
-              }} 
-              className="btn-secondary flex items-center gap-2"
-            >
-              <FiEdit2 /> Edit Details
-            </button>
+            
+            <div className="flex flex-wrap justify-end gap-2">
+              <button 
+                onClick={() => {
+                  onToggleArchive(currentKey.id || currentKey._id, currentKey.archived);
+                }} 
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-colors border ${currentKey.archived ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 border-transparent' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800'}`}
+              >
+                <FiArchive /> {currentKey.archived ? 'Unarchive' : 'Archive'}
+              </button>
+              <button 
+                onClick={() => {
+                  onEdit(currentKey);
+                  onClose();
+                }} 
+                className="btn-primary flex items-center gap-2"
+              >
+                <FiEdit2 /> Edit Details
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>
